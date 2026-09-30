@@ -1,0 +1,7 @@
+# These checks establish LLVM well-formedness only, not QIR profile conformance.
+# RUN: %llvm-as %S/../Inputs/bell.ll -o %t.bell.bc
+# RUN: %opt -passes=verify -disable-output %t.bell.bc
+# RUN: %llvm-as %S/../Inputs/zero-handles.ll -o %t.zero.bc
+# RUN: %opt -passes=verify -disable-output %t.zero.bc
+# RUN: %llvm-as %S/../Inputs/sparse-resources.ll -o %t.sparse.bc
+# RUN: %opt -passes=verify -disable-output %t.sparse.bc
