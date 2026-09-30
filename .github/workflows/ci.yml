@@ -1,0 +1,63 @@
+name: Scaffold checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scaffold-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  llvm-21:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read locked source revision
+        id: lock
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          lock = json.loads(Path("toolchain.lock.json").read_text())
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print(f"llvm={lock['llvm_project']['revision']}", file=output)
+          PY
+      - uses: actions/checkout@v4
+        with:
+          repository: llvm/llvm-project
+          ref: ${{ steps.lock.outputs.llvm }}
+          path: .deps/llvm-project
+      - uses: actions/cache@v4
+        with:
+          path: .deps/llvm-build
+          key: ${{ runner.os }}-${{ runner.arch }}-llvm-${{ hashFiles('toolchain.lock.json', '.github/workflows/ci.yml') }}
+      - name: Configure pinned LLVM and MLIR
+        run: |
+          cmake -S .deps/llvm-project/llvm -B .deps/llvm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_PROJECTS=mlir \
+            -DLLVM_TARGETS_TO_BUILD=Native \
+            -DLLVM_ENABLE_RTTI=ON \
+            -DLLVM_ENABLE_ASSERTIONS=OFF \
+            -DLLVM_INCLUDE_TESTS=ON \
+            -DMLIR_INCLUDE_TESTS=ON
+      - name: Build required upstream libraries and tools
+        run: |
+          cmake --build .deps/llvm-build -j 2 --target \
+            mlir-opt mlir-translate mlir-tblgen FileCheck llvm-as opt
+      - name: Configure scaffold
+        run: |
+          cmake --preset dev \
+            -DLLVM_DIR="$GITHUB_WORKSPACE/.deps/llvm-build/lib/cmake/llvm" \
+            -DMLIR_DIR="$GITHUB_WORKSPACE/.deps/llvm-build/lib/cmake/mlir" \
+            -DQIRB_LIT="$GITHUB_WORKSPACE/.deps/llvm-build/bin/llvm-lit"
+      - name: Build and test
+        run: cmake --build build -j 2 --target check-qirb
