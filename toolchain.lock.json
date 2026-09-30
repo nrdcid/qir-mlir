@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "scaffold-candidate",
+  "llvm_project": {
+    "repository": "https://github.com/llvm/llvm-project.git",
+    "revision": "2078da43e25a4623cab2d0d60decddf709aaea28",
+    "release": "21.1.8",
+    "tag": "llvmorg-21.1.8",
+    "cxx_standard": 17,
+    "rtti": true,
+    "assertions": false
+  },
+  "qir_spec": {
+    "repository": "https://github.com/qir-alliance/qir-spec.git",
+    "revision": "f5647346542d5a65225c3eb349847fe4df01d1b2",
+    "version": "2.0",
+    "documents": [
+      "specification/README.md",
+      "specification/profiles/Base_Profile.md",
+      "specification/profiles/Adaptive_Profile.md"
+    ]
+  },
+  "local_build_packages": {
+    "distribution": "Ubuntu resolute amd64",
+    "llvm": "1:21.1.8-6ubuntu1",
+    "mlir": "1:21.1.8-6ubuntu1"
+  },
+  "execution": {
+    "status": "unvalidated",
+    "host_target": null,
+    "data_layout": null,
+    "runtime": null
+  },
+  "producers": [],
+  "compatibility_claims": []
+}

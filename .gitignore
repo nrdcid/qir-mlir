@@ -1,0 +1,10 @@
+/build*/
+/.cache/
+/.deps/
+/.cocoindex_code/
+/CMakeUserPresets.json
+__pycache__/
+*.py[cod]
+*.bc
+*.profraw
+*.profdata

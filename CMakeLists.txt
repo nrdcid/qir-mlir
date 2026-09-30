@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.24)
+project(QIRBridge VERSION 0.0.0 LANGUAGES C CXX)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "Use an out-of-tree build: cmake -S . -B build -G Ninja")
+endif()
+
+find_package(MLIR REQUIRED CONFIG)
+find_package(LLVM REQUIRED CONFIG HINTS "${MLIR_INSTALL_PREFIX}/lib/cmake/llvm")
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}" "${LLVM_CMAKE_DIR}")
+include(TableGen)
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+include(cmake/CheckToolchain.cmake)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS} ${MLIR_INCLUDE_DIRS})
+include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}/include")
+add_definitions(${LLVM_DEFINITIONS})
+
+add_subdirectory(include/QIRBridge/IR)
+add_subdirectory(lib)
+add_subdirectory(tools)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_subdirectory(test)
+endif()
